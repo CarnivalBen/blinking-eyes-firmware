@@ -22,7 +22,6 @@
 #include "main.h"
 
 
-#define CORE_COUNT 0x100
 #define MAX_BLINK 1000
 
 typedef struct BlinkInfoData {
@@ -242,11 +241,6 @@ int main(void) {
     // PORT SETUP
     INLVLA = 0;
     ANSELA = 0;
-    //TRISA0 = 0; // STATUS OUT
-    //TRISA1 = 0; // LATCH
-    //TRISA2 = 1; // SPEED POTENTIOMETER IN
-    //TRISA4 = 0; // DATA OUT
-    //TRISA5 = 0; // DATA CLK OUT
     TRISA = 0b00000000;
     ODA1 = 0;
     SLRA1 = 0;
@@ -257,65 +251,26 @@ int main(void) {
     ADCON1 = 0b01100000;
     ADCON2 = 0b00000000;  
     FVRCON = 0b00110000;
+ 
+    GIE = 0;
     
-    // TIMER0 SETUP    
-    OPTION_REG = 0b11011000;
-    TMR0 = 0;   
 
-    
-    // INTERRUPT SETUP
-//    IOCAP = 0b00000000;
-//    IOCAN = 0b00001000;
-//    IOCAF = 0b00001000;
-//    IOCIE = 1;
-//    TMR0IE = 0;
-  
-    GIE = 1;
-    
-    
-    word count = CORE_COUNT;
     word blink = 0;
-    
-    LATA0 = 1;
-    LATA1 = 1;
-    LATA2 = 1;
-    LATA4 = 1;
-    LATA5 = 1;
-    
+    LATA = 0b110111;
+   
     while (1) {                        
         
         _delaywdt(1000000);    
-        count--;
-        if (count == 0) {
-            count = CORE_COUNT;
-            blink++;            
-            
-            for (byte i = 0; i < sizeof(blinks) / sizeof(BlinkInfo); i++) {
-                
-                if (blinks[i].blinktime == blink) {                    
-                    LATA = LATA & (~blinks[i].portspec);                    
-                }
-                
-                if (blinks[i].blinktime + 1 == blink) {                    
-                    LATA = LATA | blinks[i].portspec;                    
-                }
-                
-            }            
-            
-            if (blink >= MAX_BLINK) {
-                blink = 0;
-            }
-            
-        }   
-               
 
+        blink++;
+        for (byte i = 0; i < sizeof(blinks) / sizeof(BlinkInfo); i++) {
+
+            if (blinks[i].blinktime == blink) LATA = LATA & (~blinks[i].portspec);
+            if (blinks[i].blinktime + 1 == blink) LATA = LATA | blinks[i].portspec;                    
+            
+        }            
+
+        if (blink >= MAX_BLINK) blink = 0;
+        
     }
 }
-
-void __interrupt() isr() {
-    
-  
-               
-}
-
-
